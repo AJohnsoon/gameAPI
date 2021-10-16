@@ -5,7 +5,7 @@ const app = express();
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
 
-const db = database 
+const db = database
 
 app.get('/games', (req,res)=>{   
     try{
@@ -30,6 +30,18 @@ app.get('/games/:id', (req,res)=>{
         }
       return res.status(status).json({data: 'Not found'})
     }    
+})
+
+app.post('/game', (req, res)=>{
+    const {id, name, year} = req.body   
+    const items = {id, name, year}
+    if(items.id != null && items.name != null && items.year != null){
+        db.push({id: items.id, name: items.name, year: items.year})
+        return res.status(201).json({data: "sucess on create item"})
+    }
+    else{
+        return res.status(400).json({data: "Null param on body"})
+    }
 })
 
 
