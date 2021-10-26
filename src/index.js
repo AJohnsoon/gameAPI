@@ -1,9 +1,10 @@
 import express from 'express';
 import database from './database/db.js'
-
+import cors from 'cors'
 const app = express();
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
+app.use(cors())
 
 const db = database
 
@@ -29,18 +30,6 @@ app.get('/games/:id', (req, res) => {
             return res.status(status).json(findGame)
         }
         return res.sendStatus(204)
-    }
-})
-
-app.post('/game', (req, res) => {
-    const { id, name, year } = req.body
-    const items = { id, name, year }
-    if (items.id != null && items.name != null && items.year != null) {
-        db.push({ id: items.id, name: items.name, year: items.year })
-        return res.status(201).json({ data: "sucess on create item" })
-    }
-    else {
-        return res.status(400).json({ data: "Null param on body" })
     }
 })
 
