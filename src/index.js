@@ -18,7 +18,7 @@ app.get('/api/v1/games', (req, res) => {
         });
         return mongoReturn
     } catch (err) {
-        console.log(err)
+        console.info("Error when find game", err)
     }
 })
 
@@ -30,10 +30,10 @@ app.get('/api/v1/games/:_id', (req, res) => {
             if (isNaN(param)) {
                 let dbo = db.db("gameAPI")
                 dbo.collection("games").findOne({ _id: mongoDB.ObjectId(param) }, (err, result) => {
-                    if(result != null){
+                    if (result != null) {
                         return res.json({ result })
                     }
-                    return res.json({data: "item does not exist in database"})
+                    return res.status(204).json({ data: "item does not exist in database" })
                 })
             }
             else if (!isNaN(param)) {
@@ -42,7 +42,7 @@ app.get('/api/v1/games/:_id', (req, res) => {
         })
         return findGame
     } catch (err) {
-        console.log("Error")
+        console.info("Error when search gameID", err)
     }
 })
 
@@ -65,7 +65,7 @@ app.post('/api/v1/games', (req, res) => {
         })
         return addNewGame
     } catch (err) {
-        console.log(err, "Error to add game")
+        console.info("Error when add game", err)
     }
 })
 
@@ -81,41 +81,66 @@ app.delete('/api/v1/games/:_id', (req, res) => {
                             return res.json(object)
                         })
                     } else {
-                        return res.status(204)
+                        return res.status(204).json({})
                     }
                 })
             }
             else if (!isNaN(param)) {
-                res.json({ data: "ID not found" })
+                res.json({ data: "ID not found or invalid format" })
             }
         })
         return deleteGame
     }
     catch (err) {
-        console.log('erro')
+        console.info('Erro when delete game', err)
     }
 })
 
-app.put('/api/v1/games/:id', (req, res) => {
-    const param = req.params.id
-    const status = res.statusCode
-    if (!isNaN(param)) {
-        const id = parseInt(param)
-        const findGame = db.find(game => game.id === id)
-        if (findGame != undefined) {
-            const { name, year } = req.body
-            if (name != undefined) {
-                findGame.name = name
+app.put('/api/v1/games/:_id', (req, res) => {
+    try {
+        const putGame = MongoClient.connect(url, (err, db) => {
+            const param = req.params._id
+            if (isNaN(param)) {
+                let dbo = db.db("gameAPI")
+                dbo.collection("games").findOne({ _id: mongoDB.ObjectId(param) }, (err, result) => {
+                    if (result != undefined) {
+                        const newName = req.body.name
+                        const newYear  = req.body.year
+                        const setValueName = { $set: { name: newName } }
+                        const setValueYear = { $set: { year: newYear } }
+                        const setValue = { $set: {name: newName, year: newYear} }
+
+                        if(newName != undefined && newYear != undefined) {
+                            dbo.collection("games").updateOne(result, setValue, (err, ok) => {
+                                return ok
+                            })
+                        }
+                        
+                        if (newName != undefined) {
+                            dbo.collection("games").updateOne(result, setValueName, (err, ok) => {
+                                return ok
+                            })
+                        }
+                        if (newYear != undefined) {
+                            dbo.collection("games").updateOne(result, setValueYear, (err, ok) => {
+                                return ok
+                            })
+                        }
+                
+                        return res.json({ data: "items updated successfully" })
+                    }
+                })
             }
-            if (year != undefined) {
-                findGame.year = year
+            if (!isNaN(param)) {
+                res.json({ data: "ID not found or invalid format" })
             }
-            return res.json({ data: `updated item id: ${id} to: ${name}` })
-        }
-        return res.sendStatus(204)
+
+        })
+        return putGame
+    } catch (err) {
+        console.info("Error when update game ", err)
     }
 })
-
 app.listen(3000, () => {
     console.info("Server is runner in port 3000")
 })
