@@ -1,4 +1,4 @@
-import MongoClient, {url} from './database/db.js'
+import MongoClient, { url } from './database/db.js'
 import express from 'express';
 import mongoDB from 'mongodb';
 
@@ -7,7 +7,7 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.get('/games', (req, res) => {
+app.get('/api/v1/games', (req, res) => {
     try {
         const mongoReturn = MongoClient.connect(url, function (err, db) {
             if (err) throw err;
@@ -22,15 +22,22 @@ app.get('/games', (req, res) => {
     }
 })
 
-app.get('/games/:_id', (req, res) => {
+app.get('/api/v1/games/:_id', (req, res) => {
     try {
-        const findGame = MongoClient.connect(url, (err, db) => {           
+        const findGame = MongoClient.connect(url, (err, db) => {
             const param = req.params._id
+            const status = req.statusCode
             if (isNaN(param)) {
                 let dbo = db.db("gameAPI")
-                dbo.collection("games").findOne({_id:mongoDB.ObjectId(param)}, (err, result) => {
-                    return res.json(result)
+                dbo.collection("games").findOne({ _id: mongoDB.ObjectId(param) }, (err, result) => {
+                    if(result != null){
+                        return res.json({ result })
+                    }
+                    return res.json({data: "item does not exist in database"})
                 })
+            }
+            else if (!isNaN(param)) {
+                res.json({ data: "ID not found or invalid format" })
             }
         })
         return findGame
@@ -39,39 +46,57 @@ app.get('/games/:_id', (req, res) => {
     }
 })
 
+app.post('/api/v1/games', (req, res) => {
 
-app.post('/game', (req, res) => {
-    const { id, name, year } = req.body
-    const items = { id, name, year }
-    if (items.id != null && items.name != null && items.year != null) {
-        db.push({ id: items.id, name: items.name, year: items.year })
-        return res.status(201).json({ data: "sucess on create item" })
-    }
-    else {
-        return res.status(400).json({ data: "Null param on body" })
-    }
-})
+    try {
 
-
-app.delete('/game/:id', (req, res) => {
-    const param = req.params.id
-    if (!isNaN(param)) {
-        const id = parseInt(param)
-        const findGameById = db.findIndex(game => game.id == id)
-
-        if (findGameById < 0) {
-            return res.sendStatus(204)
-        } else {
-            db.splice(findGameById, 1);
-            res.status(200).json({ Data: "item deleted successfully" })
-        }
-    } else {
-        return res.sendStatus(404)
+        const addNewGame = MongoClient.connect(url, (err, db) => {
+            const { name, year } = req.body
+            const items = { name, year }
+            let dbo = db.db("gameAPI")
+            if (items.name != null && items.year != null) {
+                dbo.collection("games").insertOne(items, (err, result) => {
+                    return res.json({ data: "sucess on create item", result })
+                })
+            }
+            else {
+                return res.status(400).json({ data: "Null param on body" })
+            }
+        })
+        return addNewGame
+    } catch (err) {
+        console.log(err, "Error to add game")
     }
 })
 
+app.delete('/api/v1/games/:_id', (req, res) => {
+    try {
+        const deleteGame = MongoClient.connect(url, (err, db) => {
+            const param = req.params._id
+            if (isNaN(param)) {
+                let dbo = db.db("gameAPI")
+                dbo.collection("games").findOne({ _id: mongoDB.ObjectId(param) }, (err, result) => {
+                    if (result != undefined) {
+                        dbo.collection("games").deleteOne(result, (err, object) => {
+                            return res.json(object)
+                        })
+                    } else {
+                        return res.status(204)
+                    }
+                })
+            }
+            else if (!isNaN(param)) {
+                res.json({ data: "ID not found" })
+            }
+        })
+        return deleteGame
+    }
+    catch (err) {
+        console.log('erro')
+    }
+})
 
-app.put('/games/:id', (req, res) => {
+app.put('/api/v1/games/:id', (req, res) => {
     const param = req.params.id
     const status = res.statusCode
     if (!isNaN(param)) {
