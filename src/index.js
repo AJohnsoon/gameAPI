@@ -26,7 +26,6 @@ app.get('/api/v1/games/:_id', (req, res) => {
     try {
         const findGame = MongoClient.connect(url, (err, db) => {
             const param = req.params._id
-            const status = req.statusCode
             if (isNaN(param)) {
                 let dbo = db.db("gameAPI")
                 dbo.collection("games").findOne({ _id: mongoDB.ObjectId(param) }, (err, result) => {
@@ -47,9 +46,7 @@ app.get('/api/v1/games/:_id', (req, res) => {
 })
 
 app.post('/api/v1/games', (req, res) => {
-
     try {
-
         const addNewGame = MongoClient.connect(url, (err, db) => {
             const { name, year } = req.body
             const items = { name, year }
@@ -105,17 +102,17 @@ app.put('/api/v1/games/:_id', (req, res) => {
                 dbo.collection("games").findOne({ _id: mongoDB.ObjectId(param) }, (err, result) => {
                     if (result != undefined) {
                         const newName = req.body.name
-                        const newYear  = req.body.year
+                        const newYear = req.body.year
                         const setValueName = { $set: { name: newName } }
                         const setValueYear = { $set: { year: newYear } }
-                        const setValue = { $set: {name: newName, year: newYear} }
+                        const setValue = { $set: { name: newName, year: newYear } }
 
-                        if(newName != undefined && newYear != undefined) {
+                        if (newName != undefined && newYear != undefined) {
                             dbo.collection("games").updateOne(result, setValue, (err, ok) => {
                                 return ok
                             })
                         }
-                        
+
                         if (newName != undefined) {
                             dbo.collection("games").updateOne(result, setValueName, (err, ok) => {
                                 return ok
@@ -126,7 +123,7 @@ app.put('/api/v1/games/:_id', (req, res) => {
                                 return ok
                             })
                         }
-                
+
                         return res.json({ data: "items updated successfully" })
                     }
                 })
@@ -141,6 +138,38 @@ app.put('/api/v1/games/:_id', (req, res) => {
         console.info("Error when update game ", err)
     }
 })
+
+app.post('/api/v1/auth', (req, res) => {
+    try {
+        const loggin = MongoClient.connect(url, (err, db) => {
+            let { username, password } = req.body
+            let item = { username, password }
+
+            if (item.username != "" && item.password != "") {
+                let dbo = db.db("gameAPI")
+                dbo.collection("users").findOne({username: item.username,  password:item.password }, function (err, result){
+                    const findUser = result
+                    if(findUser == null){
+                        res.json({data: "invalid username or password"})
+                    }
+                    else{
+                        res.json({token: "here"})
+                    }
+                    
+                })                
+            }
+            else {
+                res.status(400).json({ data: "Error on username or password sintax" })
+            }
+        })
+
+        return loggin
+
+    } catch (err) {
+        console.log('Error to try loggin')
+    }
+})
+
 app.listen(3000, () => {
     console.info("Server is runner in port 3000")
 })
