@@ -155,7 +155,7 @@ app.post('/api/v1/auth/login', (req, res) => {
                         res.status(401).json({statusCode: 401, message: "Invalid JWT"})
                     }
                     else{
-                        const time = 3600
+                        const time = '300s'
                         jwt.sign({id: findUser.id, email: findUser.email}, jwtSecret, {expiresIn: time }, (err, token) => {
                             if(err){
                                 res.status(400).json({err: "Internal server error"})

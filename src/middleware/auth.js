@@ -14,7 +14,9 @@ export default function auth(req, res, next){
             if(err){
                 res.status(401).json({error: 'Unexpected token error.'})
             }
-            next()                       
+            else{
+                next()                       
+            }
         })        
     } 
 }
