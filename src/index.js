@@ -2,12 +2,12 @@ import MongoClient, { url } from './database/db.js'
 import express from 'express';
 import mongoDB from 'mongodb';
 import jwt from 'jsonwebtoken';
-
+import auth from'./middleware/auth.js';
+import jwtSecret from './config/jwtSecret.js'
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const jwtSecret = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
 app.get('/api/v1/games', (req, res) => {
     try {
@@ -47,7 +47,7 @@ app.get('/api/v1/games/:_id', (req, res) => {
     }
 })
 
-app.post('/api/v1/games', (req, res) => {
+app.post('/api/v1/games', auth, (req, res) => {
     try {
         const addNewGame = MongoClient.connect(url, (err, db) => {
             const { name, year } = req.body
@@ -68,7 +68,7 @@ app.post('/api/v1/games', (req, res) => {
     }
 })
 
-app.delete('/api/v1/games/:_id', (req, res) => {
+app.delete('/api/v1/games/:_id', auth, (req, res) => {
     try {
         const deleteGame = MongoClient.connect(url, (err, db) => {
             const param = req.params._id
@@ -95,7 +95,7 @@ app.delete('/api/v1/games/:_id', (req, res) => {
     }
 })
 
-app.put('/api/v1/games/:_id', (req, res) => {
+app.put('/api/v1/games/:_id', auth, (req, res) => {
     try {
         const putGame = MongoClient.connect(url, (err, db) => {
             const param = req.params._id
