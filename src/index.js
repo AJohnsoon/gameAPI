@@ -1,22 +1,24 @@
 import MongoClient, { url } from './database/db.js'
 import express from 'express';
 import mongoDB from 'mongodb';
-
+import jwt from 'jsonwebtoken';
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+const jwtSecret = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
 app.get('/api/v1/games', (req, res) => {
     try {
-        const mongoReturn = MongoClient.connect(url, function (err, db) {
+        const findAll = MongoClient.connect(url, function (err, db) {
             if (err) throw err;
             var dbo = db.db("gameAPI");
             dbo.collection("games").find({}).toArray(function (err, result) {
                 return res.json(result)
             });
         });
-        return mongoReturn
+        return findAll
     } catch (err) {
         console.info("Error when find game", err)
     }
@@ -139,7 +141,7 @@ app.put('/api/v1/games/:_id', (req, res) => {
     }
 })
 
-app.post('/api/v1/auth', (req, res) => {
+app.post('/api/v1/auth/login', (req, res) => {
     try {
         const loggin = MongoClient.connect(url, (err, db) => {
             let { username, password } = req.body
@@ -150,10 +152,22 @@ app.post('/api/v1/auth', (req, res) => {
                 dbo.collection("users").findOne({username: item.username,  password:item.password }, function (err, result){
                     const findUser = result
                     if(findUser == null){
-                        res.json({data: "invalid username or password"})
+                        res.status(401).json({statusCode: 401, message: "Invalid JWT"})
                     }
                     else{
-                        res.json({token: "here"})
+                        const time = 3600
+                        jwt.sign({id: findUser.id, email: findUser.email}, jwtSecret, {expiresIn: time }, (err, token) => {
+                            if(err){
+                                res.status(400).json({err: "Internal server error"})
+                            }
+                            else{
+                                res.json({"gameTokenAPI":{
+                                    acessToken: token, 
+                                    expiresIn: time, 
+                                    tokenType: "Bearer" }})
+                            }
+                        })
+                        
                     }
                     
                 })                
