@@ -4,7 +4,7 @@ import mongoDB from 'mongodb';
 import jwt from 'jsonwebtoken';
 import auth from'./middleware/auth.js';
 import jwtSecret from './config/jwtSecret.js'
-const app = express();
+export const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -182,8 +182,4 @@ app.post('/api/v1/auth/login', (req, res) => {
     } catch (err) {
         console.log('Error to try loggin')
     }
-})
-
-app.listen(3000, () => {
-    console.info("Server is runner in port 3000")
 })
