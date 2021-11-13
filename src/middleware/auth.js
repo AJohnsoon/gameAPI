@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
-import jwtSecret from '../config/jwtSecret.js'
+import {config} from '../config/index.js'
 
+const JWToken = config.token.secret
 
 export default function auth(req, res, next){
     const authToken = req.headers['authorization']
@@ -10,7 +11,7 @@ export default function auth(req, res, next){
     else{
         const splitToken = authToken.split(' ')
         const token = splitToken[1]
-        jwt.verify(token, jwtSecret, (err, sucess)=>{
+        jwt.verify(token, JWToken, (err, sucess)=>{
             if(err){
                 res.status(401).json({error: 'Unexpected token error.'})
             }
