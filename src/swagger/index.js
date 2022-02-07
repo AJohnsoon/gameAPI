@@ -17,7 +17,7 @@
  *     responses:
  *       200:
  *         description: Returns a acessToken string to use all resources.
- *       401:
+ *       400:
  *         description: Return a statusCode and message error
  * 
  */
@@ -52,6 +52,7 @@
  *     responses:
  *       200:
  *         description: Returns a mysterious string.
+ *       401: Invalid JWT
  */
 
 /**
@@ -62,6 +63,7 @@
  *     responses:
  *       200:
  *         description: Returns a mysterious string.
+ *       401: Invalid JWT
  */
 
 
@@ -84,6 +86,5 @@
  *     responses:
  *       200:
  *         description: Create a new item and save it to the database.
- *       401:
- *         description: You need a valid JWT (Authenticate route) to acess this endpoint.
+ *      
  */
